@@ -59,6 +59,27 @@
           "subtile_group": {
             "type": "string",
             "description": "Name of the group that the design belongs to (for subtile designs)"
+          },
+          "demo": {
+            "type": "object",
+            "description": "Present if the design is included in the demo board's demo mode loop (from the shuttle's projects/demo.yaml), with optional settings for showing it",
+            "properties": {
+              "seconds": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "How long to show the design"
+              },
+              "clock_hz": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1000000000,
+                "description": "Project clock to use for the demo, overriding clock_hz"
+              },
+              "ui_in": { "type": "integer", "minimum": 0, "maximum": 255 },
+              "uio_oe_pico": { "type": "integer", "minimum": 0, "maximum": 255 },
+              "uio_in": { "type": "integer", "minimum": 0, "maximum": 255 }
+            },
+            "additionalProperties": false
           }
         },
         "required": [
