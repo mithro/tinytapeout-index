@@ -38,11 +38,15 @@ export interface IShuttleIndexProject {
   subtile_addr_bits?: number;
   /** Present if the design is in the demo board's demo mode loop */
   demo?: {
-    seconds?: number;
+    duration_ms?: number;
     clock_hz?: number;
     ui_in?: number;
     uio_oe_pico?: number;
     uio_in?: number;
+    keys?: {
+      via: 'ui' | 'gamepad';
+      steps: ({ set: number } | { wait_ms: number })[];
+    };
   };
 }
 

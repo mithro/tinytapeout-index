@@ -60,11 +60,18 @@ A shuttle repo may list projects to include in the demo board firmware's demo mo
 tt_um_vga_example:            # include with default settings
 tt_um_rebeccargb_colorbars:
   clock_hz: 25175000          # project clock to use (many VGA designs list clock_hz 0)
-  seconds: 30                 # how long to show it
+  duration_ms: 30000          # how long to show it
   ui_in: 0                    # input values to set, 0-255
   uio_oe_pico: 0
   uio_in: 0
+tt_um_RoyTr16:
+  ui_in: 7
+  keys:                       # inputs to play while it is shown, looped
+    via: ui                   # "ui": set ui_in; "gamepad": set a 12-bit Gamepad Pmod report
+    steps: [{set: 5}, {wait_ms: 40}, {set: 7}, {wait_ms: 250}]
 ```
+
+The settings have the same names and meaning as in the firmware's `/demo.json` playlist entries (see `demo.md` in tt-micropython-firmware); when a `keys` script runs out, the firmware resets the design and starts it again.
 
 `update_projects.py` copies each entry into that project's `demo` field (an empty object when there are no settings). Unknown or out-of-range settings fail the update, so typos are caught; names that aren't on the shuttle are reported as warnings. To try out a `demo.yaml` before committing it to the shuttle repo, pass it with `python update_projects.py <shuttle> --demo-yaml path/to/demo.yaml`. The parser's tests run with `cd scripts && python -m pytest test_demo_info.py`.
 
