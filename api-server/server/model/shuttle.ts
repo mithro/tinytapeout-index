@@ -36,6 +36,14 @@ export interface IShuttleIndexProject {
   subtile_group?: string;
   subtile_addr?: number;
   subtile_addr_bits?: number;
+  /** Present if the design is in the demo board's demo mode loop */
+  demo?: {
+    seconds?: number;
+    clock_hz?: number;
+    ui_in?: number;
+    uio_oe_pico?: number;
+    uio_in?: number;
+  };
 }
 
 /** A shuttle entry in index/index.json */

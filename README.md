@@ -52,6 +52,22 @@ The API server adds:
 - `analog_pinout` to `/[shuttle].json`: the shuttle's board and its `pin_labels`.
 - `analog_pin_labels` to `/[shuttle]/[project].json`: the label of each pin in `analog_pins`.
 
+## Demo Projects
+
+A shuttle repo may list projects to include in the demo board firmware's demo mode (which cycles through designs, e.g. VGA demos on a screen at a booth) in an optional `projects/demo.yaml`:
+
+```yaml
+tt_um_vga_example:            # include with default settings
+tt_um_rebeccargb_colorbars:
+  clock_hz: 25175000          # project clock to use (many VGA designs list clock_hz 0)
+  seconds: 30                 # how long to show it
+  ui_in: 0                    # input values to set, 0-255
+  uio_oe_pico: 0
+  uio_in: 0
+```
+
+`update_projects.py` copies each entry into that project's `demo` field (an empty object when there are no settings). Unknown or out-of-range settings fail the update, so typos are caught; names that aren't on the shuttle are reported as warnings. To try out a `demo.yaml` before committing it to the shuttle repo, pass it with `python update_projects.py <shuttle> --demo-yaml path/to/demo.yaml`. The parser's tests run with `cd scripts && python -m pytest test_demo_info.py`.
+
 ## Updating the Shuttle Index
 
 To add or update a shuttle entry in `index/index.json` from a GitHub Actions run:
