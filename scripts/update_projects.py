@@ -15,6 +15,8 @@ from pathlib import Path
 
 import yaml
 
+from demo_info import load_demo_info
+
 SCANCHAIN_SHUTTLES = ["tt02", "tt03"]
 # In legacy shuttles, the info.yaml files were committed after the fact, to a different path
 LEGACY_SHUTTLES = ["tt02", "tt03", "tt03p5"]
@@ -75,6 +77,12 @@ SCANCHAIN_VALID_PINOUT_KEYS = [
 
 parser = argparse.ArgumentParser(description="Update shuttle index")
 parser.add_argument("shuttle_id", type=str, help="Shuttle ID")
+parser.add_argument(
+    "--demo-yaml",
+    type=Path,
+    help="read demo settings from this local file instead of the shuttle "
+    "repo's projects/demo.yaml (for trying out changes)",
+)
 
 args = parser.parse_args()
 
@@ -160,6 +168,10 @@ try:
 except urllib.error.HTTPError:
     groups = []
 
+# Optional: projects to include in the demo board's demo mode loop
+demo_url = f"https://raw.githubusercontent.com/{owner}/{repo}/{branch}/{projects_dir}/demo.yaml"
+demo_info = load_demo_info(demo_url, local_path=args.demo_yaml)
+
 projects = []
 macro_addresses = {}
 project_index = []
@@ -234,6 +246,11 @@ for address, project_entry in project_index:
         if "reason" in project_danger_level:
             project_data["danger_reason"] = project_danger_level["reason"]
 
+    if macro in demo_info:
+        if macro in groups:
+            logging.warning(f"{macro}: is a group, it can't be shown in demo mode (list its subtiles)")
+        project_data["demo"] = demo_info[macro]
+
     projects.append(project_data)
 
     if macro in groups:
@@ -245,26 +262,30 @@ for address, project_entry in project_index:
         for index, subproject in group_info["projects"].items():
             if subproject is None:
                 continue  # Empty slot
-            projects.append(
-                {
-                    "type": "subtile",
-                    "macro": subproject["macro"],
-                    "address": int(address),
-                    "subtile_addr": int(index),
-                    "subtile_addr_bits": index_bits,
-                    "subtile_group": macro,
-                    "title": subproject["title"],
-                    "author": subproject["author"],
-                    "description": subproject["description"],
-                    "clock_hz": subproject.get("clock_hz", "0"),
-                    "tiles": "0",
-                    "analog_pins": [],
-                    "repo": subproject.get("repo", ""),
-                    "commit": subproject.get("commit", ""),
-                    "pinout": subproject.get("pinout", {}),
-                }
-            )
+            subproject_data = {
+                "type": "subtile",
+                "macro": subproject["macro"],
+                "address": int(address),
+                "subtile_addr": int(index),
+                "subtile_addr_bits": index_bits,
+                "subtile_group": macro,
+                "title": subproject["title"],
+                "author": subproject["author"],
+                "description": subproject["description"],
+                "clock_hz": subproject.get("clock_hz", "0"),
+                "tiles": "0",
+                "analog_pins": [],
+                "repo": subproject.get("repo", ""),
+                "commit": subproject.get("commit", ""),
+                "pinout": subproject.get("pinout", {}),
+            }
+            if subproject["macro"] in demo_info:
+                subproject_data["demo"] = demo_info[subproject["macro"]]
+            projects.append(subproject_data)
     projects.sort(key=lambda x: x["macro"])
+
+for macro in sorted(set(demo_info) - {p["macro"] for p in projects}):
+    logging.warning(f"demo.yaml: {macro} is not a project on this shuttle")
 
 result = {
     "version": 3,
